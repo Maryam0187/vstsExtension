@@ -24,6 +24,28 @@
             "path": "overview.md"
         }
     },
+    "links": {
+        "getstarted": {
+            "uri": "https://github.com/Maryam0187/vstsExtension"
+        },
+        "learn": {
+            "uri": "https://github.com/Maryam0187/vstsExtension"
+        },
+        "license": {
+            "uri": "https://github.com/Maryam0187/vstsExtension"
+        },
+        "support": {
+            "uri": "https://github.com/Maryam0187/vstsExtension"
+        }
+    },
+    "repository": {
+            "type": "git",
+            "uri": "https://github.com/Maryam0187/vstsExtension"
+    },
+    "branding": {
+        "color": "87C2E1",
+        "theme": "light"
+    },
 
     "contributions": [
         {
