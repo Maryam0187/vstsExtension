@@ -1,0 +1,96 @@
+{
+    "manifestVersion": 1,
+    "id": "build-analysis-dashboard-widgets",
+    "version": "1.0.24",
+    "name": "Build analysis Widgets",
+    "description": "A collection of dashboard widgets for displaying  builds analysis in Visual Studio Team Services (VSTS) and Team Foundation Server (TFS).",
+    "publisher": "Maryamextension",
+     "public": false,
+"icons": {
+        "default": "picture.jpg"
+    },
+
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],
+    
+       "categories": [
+        "Test"
+    ],
+"content": {
+        "details": {
+            "path": "overview.md"
+        }
+    },
+
+    "contributions": [
+        {
+             "id": "BuildAnalysisWidget",
+             "type": "ms.vss-dashboards-web.widget",
+             "targets": [
+                 "ms.vss-dashboards-web.widget-catalog",
+                 "Maryamextension.build-analysis-dashboard-widgets.buildAnalysisWidget.Configuration"
+             ],
+             "properties": {
+                 "name": "Build analysis",
+                 "description": "Displays the builds analysis of  a build definition.", 
+                 "catalogIconUrl": "picture.jpg",
+                 "previewImageUrl": "picture.jpg",                     
+                 "uri": "my-hub.html",
+                 "isNameConfigurable": true,
+                 "supportedSizes": [
+                    {
+                        "rowSpan": 2,
+                        "columnSpan": 3
+                    },
+                    {
+                        "rowSpan": 3,
+                        "columnSpan": 4
+                    },
+                   {
+				"rowSpan": 3,
+				"columnSpan": 3
+
+                    }
+                 ],
+                 "supportedScopes": ["project_team"]
+             }
+         },
+         {
+             "id": "buildAnalysisWidget.Configuration",
+             "type": "ms.vss-dashboards-web.widget-configuration",
+             "targets": [ "ms.vss-dashboards-web.widget-configuration" ],
+             "properties": {
+                 "name": "builds analysis Configuration",
+                 "description": "Configures build analysis",
+                 "uri": "configuration.html"
+             }
+         }
+    ],
+    "files": [
+        {
+            "path": "my-hub.html", "addressable": true
+        },
+        {
+            "path": "configuration.html", "addressable": true
+        },
+        {   
+            "path": "pic.jpeg","addressable": true
+           },
+           {
+            "path": "picture.jpg","addressable": true
+           },
+
+        {
+            "path": "node_modules/vss-web-extension-sdk/lib",
+            "addressable": true,
+            "packagePath": "lib"
+        }
+    ],
+        "scopes": [
+        "vso.build",
+        "vso.test"
+    ]
+}

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="lib/VSS.SDK.min.js"></script>
+        <script type="text/javascript">
+            // Initialize
+            VSS.init({
+                explicitNotifyLoaded: true,
+                usePlatformStyles: true,
+                usePlatformScripts: true
+            });
+
+            VSS.require(["TFS/Dashboards/WidgetHelpers", "TFS/Build/RestClient", "TFS/TestManagement/RestClient"], 
+            function (WidgetHelpers, TFS_Build_WebApi, TFS_TestMgmt_WebApi) {
+                WidgetHelpers.IncludeWidgetStyles();
+
+                VSS.register("BuildAnalysisWidget", function () {
+                    var projectId = VSS.getWebContext().project.id;
+                    var getBuildBuildInfo = function (widgetSettings) {
+                        var settings = JSON.parse(widgetSettings.customSettings.data);
+                        if (!settings || !settings.buildDefinition) {                      
+                            // Initialize display values
+                            $("#init-label").show();
+                            $("div.big-count").hide();
+                            $("#percent-label").hide();
+                            
+                            return WidgetHelpers.WidgetStatusHelper.Success()
+                        }
+
+                        if (settings && settings.checkOptionBuildName == true) {
+                            // Show build name
+                            $("#build-name").show();
+                        }
+                        else {
+                            // Hide build name
+                            $("#build-name").hide();
+                        }
+                        
+                        // Output diagnostics info to console
+                        console.log('projectId = ' + projectId);
+                        console.log('settings.buildDefinition = ' + settings.buildDefinition);
+                        
+                        // Get a client to make REST calls to VSTS
+                        return TFS_Build_WebApi.getClient().getDefinition(settings.buildDefinition, projectId)
+                            .then(function (query) {                              
+                                // Use the widget helper and return success as Widget Status
+                                return WidgetHelpers.WidgetStatusHelper.Success();
+                            }, function (error) {
+                                // Use the widget helper and return failure as Widget Status
+                                return WidgetHelpers.WidgetStatusHelper.Failure(error.message);
+                            });
+                    }
+
+                    return {
+                        load: function (widgetSettings) {
+                            // Set title
+                            $("h2.title").text(widgetSettings.name);
+
+                            // Output diagnostics info to console
+                            console.log('event: load');
+
+                            return getBuildBuildInfo(widgetSettings);
+                        },
+                        reload: function (widgetSettings) {
+                            // Set title
+                            $("h2.title").text(widgetSettings.name);
+                            
+                            // Output diagnostics info to console
+                            console.log('event: reload');
+
+                            return getBuildBuildInfo(widgetSettings);
+                        }
+                    }
+                });
+                VSS.notifyLoadSucceeded();
+            });
+        </script>
+    </head>
+    <body>
+        <div class="widget">
+            <h2 class="title"></h2>
+         <img src="pic.jpeg">
+        </div>
+    </body>
+</html>
