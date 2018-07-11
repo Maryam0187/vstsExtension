@@ -2,44 +2,193 @@
 <html>
     <head>
         <script src="lib/VSS.SDK.min.js"></script>
+        <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
         <script type="text/javascript">
+        function graph(para,chartid,title) 
+        {   
+            $(chartid).show();
+            arr=para.sort();
+            var a = [], b = [], prev;	
+            for ( var i = 0; i < arr.length; i++ )
+            {
+                if ( arr[i] !== prev )
+                {
+                    a.push(arr[i]);
+                    b.push(1);
+                } 
+                else 
+                {
+                    b[b.length-1]++;
+                }
+                prev = arr[i];
+            }
+            console.log(a);
+            console.log(b);
+            sum=b.reduce((a, b) => a + b, 0);
+            var temp;
+            var dps=[];
+            for (temp=0;temp<a.length;temp++)
+            {
+                dps.push({label:a[temp], y:b[temp] ,z:Math.round((b[temp]/sum)*100)});
+            }
+            console.log(dps);
+            var chart = new CanvasJS.Chart(chartid, {
+            animationEnabled: true,
+            
+            title:{
+                text:title
+            },
+            data: [{
+                type: "bar",
+                indexLabel:"{z}%",
+                indexLabelPlacement: "outside",  
+                indexLabelOrientation: "horizontal",
+                dataPoints:dps
+            }]
+        });
+        chart.render();
+
+        }
             // Initialize
             VSS.init({
                 explicitNotifyLoaded: true,
                 usePlatformStyles: true,
                 usePlatformScripts: true
             });
-
-            VSS.require(["TFS/Dashboards/WidgetHelpers", "TFS/Build/RestClient", "TFS/TestManagement/RestClient"], 
-            function (WidgetHelpers, TFS_Build_WebApi, TFS_TestMgmt_WebApi) {
+            
+            VSS.require(["TFS/Dashboards/WidgetHelpers", "TFS/Build/RestClient", "TFS/TestManagement/RestClient","TFS/DistributedTask/Contracts","VSS/WebApi/Contracts"], 
+            function (WidgetHelpers, TFS_Build_WebApi, TFS_TestMgmt_WebApi,timeline,peoplename) {
                 WidgetHelpers.IncludeWidgetStyles();
-
+                var failedtask;
+                var failedby;
                 VSS.register("BuildAnalysisWidget", function () {
                     var projectId = VSS.getWebContext().project.id;
+                    var accountid=VSS.getWebContext().account.id;
+                    var accountname=VSS.getWebContext().account.name;
                     var getBuildBuildInfo = function (widgetSettings) {
                         var settings = JSON.parse(widgetSettings.customSettings.data);
+                        console.log(widgetSettings);
                         if (!settings || !settings.buildDefinition) {                      
                             // Initialize display values
                             $("#init-label").show();
-                            $("div.big-count").hide();
-                            $("#percent-label").hide();
+                            $("div.element").hide();
+	                        $("div.counts").hide();
                             
-                            return WidgetHelpers.WidgetStatusHelper.Success()
+                            return WidgetHelpers.WidgetStatusHelper.Success();
                         }
 
                         if (settings && settings.checkOptionBuildName == true) {
                             // Show build name
-                            $("#build-name").show();
+                            $("build-name").show();
                         }
                         else {
                             // Hide build name
-                            $("#build-name").hide();
+                            $("build-name").hide();
                         }
                         
                         // Output diagnostics info to console
                         console.log('projectId = ' + projectId);
+                        console.log('account id = ' + accountid);
+                        console.log('account name = ' + accountname);
                         console.log('settings.buildDefinition = ' + settings.buildDefinition);
-                        
+        
+                       
+                        // .getBuilds(project, definitions, queues, buildNumber, minFinishTime, maxFinishTime, requestedFor, reasonFilter, statusFilter, resultFilter, tagFilters, properties, type, top, continuationToken, maxBuildsPerDefinition, deletedFilter, queryOrder, branchName)
+                       if (parseInt(settings.buildDefinition) > 0)
+                       {
+                        TFS_Build_WebApi.getClient().getBuilds(projectId, [parseInt(settings.buildDefinition)], null, null, null, null, null, null, "Completed", "Failed", null, null, null, 1, null, null, null, null, null)
+                       .then(function(value) 
+                       {    failedtask=[];
+                            failedby=[]; 
+                            console.log(value.length);
+                            //console.log(value[0].definition.name);
+                            if (value.length==0)
+                            {
+                                /*$('div.element').text("NO FAIL TASK");
+                                $('div.counts').text(" ");
+                                $("div.element").show();
+                                $("div.counts").show();*/
+                                $("#init-label").text("NO FAIL TASK");
+                                $("#init-label").show();
+                                $('h2.build-name').hide();
+                                $("#chartcont").hide();
+                                $("#chartcont1").hide();
+
+
+                            }
+                            var i;
+                            var buildid;
+                            for (i=0;i<value.length;i++)
+                            {  //console.log('-----------' +i+'--------------' );
+                                buildid=value[i].id;
+                                /*console.log("build id: "+buildid);
+                                console.log("result: " + value[i].result);
+                                console.log("build name : " + value[i].buildNumber);
+                                console.log("build status : "+ value[i].status);
+                                console.log("requestedFor :" + value[i].requestedFor.displayName);*/
+                                failedby.push(value[i].requestedFor.displayName);
+                                console.log(i + "   "+value[i].requestedFor.displayName);
+                                TFS_Build_WebApi.getClient().getBuildTimeline(projectId,buildid.toString()).then(function (myvalue)
+                                {   
+                                    var record=myvalue.records;
+                                    var y;
+                                    for (y=0;y<record.length;y++)
+                                    {
+                                        /*console.log(record[y]);
+                                        console.log("error count : "+ record[y].errorCount);
+                                        
+                                        console.log("name : " +record[y].name);
+                                        console.log("order : " + record[y].order);
+                                        console.log("result : " + JSON.stringify(record[y].result));
+                                        console.log("state : " +record[y].state);
+                                        console.log("type :  " + record[y].type);
+                                        console.log("worker name :" + record[y].workerName);*/
+                                       
+                                        if (record[y].issues !=null && record[y].result==2) 
+                                        {
+                                            /*console.log("issue array : "+ record[y].issues);
+                                            console.log("meassage : " + record[y].issues[0].message);
+                                            var tmp=JSON.stringify(record[y].issues)
+                                            console.log("issue array : "+ tmp);
+                                            console.log("result : " + JSON.stringify(record[y].result));
+                                            console.log(typeof record[y].result);
+                                            console.log("name : " +record[y].name);
+                                            console.log("type :  " + record[y].type);*/
+                                            failedtask.push(record[y].name);
+                                            console.log(y + "   "+record[y].name);
+                                            if (failedtask.length==value.length)
+                                                {   console.log(failedby);
+                                                    console.log(failedtask);
+                                                    /*$('div.element').text(failedtask);
+                                                    $('div.counts').text(failedby);
+                                                    $("div.element").show();
+                                                    $("div.counts").show();*/
+                                                    $("#init-label").hide();
+                                                    $('h2.build-name').text(value[0].definition.name);
+                                                    $('h2.build-name').show();
+                                                    $('#chartcont').show();
+                                                    $('#chartcont1').show();
+                                                    graph(failedtask,"chartcont",'failed task');
+                                                    graph(failedby,"chartcont1",'failed by');
+                                                    
+                                                    
+  
+
+                                            }
+                                        }
+                                    
+                                    }
+                                     
+                                });                            
+                            }
+                           
+                           
+                        });
+                            
+                         
+                       }
+                       
+                               
                         // Get a client to make REST calls to VSTS
                         return TFS_Build_WebApi.getClient().getDefinition(settings.buildDefinition, projectId)
                             .then(function (query) {                              
@@ -49,25 +198,38 @@
                                 // Use the widget helper and return failure as Widget Status
                                 return WidgetHelpers.WidgetStatusHelper.Failure(error.message);
                             });
-                    }
-
+                    
+                }
                     return {
                         load: function (widgetSettings) {
                             // Set title
-                            $("h2.title").text(widgetSettings.name);
-
+                            $("h1.title").text(widgetSettings.name);
+                            failedtask=[];
+                            failedby=[];
+                            $("#resultlist").text(failedby);
+                            $("h1.title").show();
+                            /*$('div.element').text(failedtask);
+	                        $('div.counts').text(failedby);
+                            $("div.element").show();
+	                        $("div.counts").show();*/
                             // Output diagnostics info to console
                             console.log('event: load');
-
                             return getBuildBuildInfo(widgetSettings);
                         },
                         reload: function (widgetSettings) {
                             // Set title
-                            $("h2.title").text(widgetSettings.name);
-                            
+                            $("h1.title").text(widgetSettings.name);
+                            failedtask=[];
+                            failedby=[];
+                            $("h1.title").show();
+                            $("#resultlist").text(failedby);
+                          /*  $('div.element').text(failedtask);
+	                        $('div.counts').text(failedby);
+                            $("div.element").show();
+	                        $("div.counts").show();*/
                             // Output diagnostics info to console
                             console.log('event: reload');
-
+                            
                             return getBuildBuildInfo(widgetSettings);
                         }
                     }
@@ -78,8 +240,13 @@
     </head>
     <body>
         <div class="widget">
-            <h2 class="title"></h2>
-         <img src="pic.jpeg">
+            <h1 class="title" hidden></h1>
+            
+            <h2 class="build-name" hidden></h2>
+            <label id="init-label" hidden>No build definition selected</label>
+           
+        <div id="chartcont" style="height: 200px; width: 100%;"></div>
+        <div id="chartcont1" style="height: 200px; width: 100%;"></div>
         </div>
     </body>
 </html>
