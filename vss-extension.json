@@ -1,11 +1,11 @@
 {
     "manifestVersion": 1,
     "id": "build-analysis-dashboard-widgets",
-    "version": "1.44",
+    "version": "1.53",
     "name": "Build analysis Widgets",
-    "description": "A collection of dashboard widgets for displaying  builds analysis in Visual Studio Team Services (VSTS) and Team Foundation Server (TFS).",
+    "description": "A dashboard widget for displaying  builds analysis in Visual Studio Team Services (VSTS) and Team Foundation Server (TFS).",
     "publisher": "Maryamextension",
-     "public": false,
+     "public": true,
 "icons": {
         "default": "picture.jpg"
     },
@@ -15,6 +15,15 @@
             "id": "Microsoft.VisualStudio.Services"
         }
     ],
+    "screenshots": [
+        {
+            "path": "buildanalysis.png"
+        },
+        {
+            "path": "config.png"
+        }
+    ],
+
     
        "categories": [
         "Test"
@@ -103,10 +112,7 @@
         {
             "path": "configuration.html", "addressable": true
         },
-        {   
-            "path": "pic.jpeg","addressable": true
-           },
-           {
+                  {
             "path": "picture.jpg","addressable": true
            },
 
@@ -116,6 +122,10 @@
             "packagePath": "lib"
         }
     ],
+    "galleryFlags": [
+        "Public"
+    ],
+
         "scopes": [
         "vso.build"
         ,
